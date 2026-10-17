@@ -1,5 +1,6 @@
 //! The running app, as `nib mcp` reaches it: the endpoint file it writes at every launch,
-//! one request to that endpoint, and starting the app when it is not running.
+//! and one request to that endpoint. Nothing here starts the app: a client that runs
+//! `nib mcp` while nib is closed finds it once the reader opens it (see `watch` in link.rs).
 //!
 //! **The file is read, never trusted to be current.** The app writes its port, its pid
 //! and the installation's secret into `automation.json` as it starts and leaves the file
@@ -7,29 +8,17 @@
 //! something else has taken since. Before the secret or a token is sent to a port, the
 //! port is asked once with neither, and only nib's own refusal - a 401 with a sentence in
 //! JSON - counts as nib. See endpoint.rs for the other side.
-//!
-//! **Started minimised, and without the keyboard.** A client that runs `nib mcp` while nib
-//! is closed gets nib, the way the design says (docs/agent-native.md 10), and the reader
-//! gets nothing in their face: on Windows through `start /min`, which is the first window
-//! a process shows taking `SW_SHOWMINNOACTIVE` from its start-up info; on a Mac through
-//! `open -g -j`, in the background and hidden. The app is handed nothing of this process's
-//! stdio, which is the client's protocol, not even by inheritance.
 
 use std::io::{Read, Write};
 use std::net::{Ipv4Addr, SocketAddr, TcpStream};
 use std::path::Path;
-use std::process::{Command, Stdio};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use serde::Deserialize;
 use serde_json::Value;
 
 /// How long a connection to the loopback may take before the app counts as not there.
 const CONNECT: Duration = Duration::from_secs(2);
-
-/// How long a started app has to open its endpoint. A cold launch of `WebView2` on a slow
-/// machine is a few seconds; the endpoint comes up before the window does.
-const STARTING: Duration = Duration::from_secs(30);
 
 /// What the endpoint file says.
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize)]
@@ -121,51 +110,6 @@ pub fn running(dir: &Path) -> Option<Endpoint> {
     endpoint(dir).filter(answers)
 }
 
-/// Starts the app, minimised and without the keyboard, and waits for its endpoint.
-pub fn start(dir: &Path) -> Result<Endpoint, String> {
-    let before = endpoint(dir);
-    launch()?;
-
-    let started = Instant::now();
-    while started.elapsed() < STARTING {
-        std::thread::sleep(Duration::from_millis(100));
-        if let Some(now) = endpoint(dir) {
-            // A file left by a launch that has ended names that launch's port; a new
-            // launch writes its own.
-            if Some(&now) != before.as_ref() && answers(&now) {
-                return Ok(now);
-            }
-        }
-    }
-    Err("Orden did not start in 30 seconds".to_owned())
-}
-
-/// The app, started. On Windows through `cmd /c start /min`, run with no console of its
-/// own: `start` gives the app its minimised, unfocused first window. None of the client's
-/// pipes goes with it; see `keep_the_pipes`.
-#[cfg(windows)]
-fn launch() -> Result<(), String> {
-    use std::os::windows::process::CommandExt as _;
-
-    /// `CREATE_NO_WINDOW`: cmd runs without a console window of its own.
-    const NO_WINDOW: u32 = 0x0800_0000;
-
-    keep_the_pipes();
-    let program = super::program::program()?;
-    let shell = std::env::var_os("ComSpec").unwrap_or_else(|| "cmd.exe".into());
-    let mut command = Command::new(shell);
-    command
-        .raw_arg(format!("/d /c start \"\" /min \"{}\"", program.display()))
-        .creation_flags(NO_WINDOW);
-    if let Some(folder) = program.parent() {
-        command.current_dir(folder);
-    }
-    quiet(&mut command)
-        .status()
-        .map_err(|error| format!("Orden could not be started: {error}"))
-        .map(drop)
-}
-
 /// This process's stdin, stdout and stderr kept to itself. They are the client's pipes,
 /// handed over inheritable, and `start` passes every inheritable handle on to the program
 /// it starts - measured: a pipe cmd was given stayed open until the started program
@@ -194,53 +138,6 @@ pub(crate) fn keep_the_pipes() {
         let _ =
             unsafe { SetHandleInformation(HANDLE(raw), HANDLE_FLAG_INHERIT.0, HANDLE_FLAGS(0)) };
     }
-}
-
-/// The app, started. On a Mac through `open`, in the background (`-g`) and hidden
-/// (`-j`); outside a bundle, a development build, as itself.
-#[cfg(target_os = "macos")]
-fn launch() -> Result<(), String> {
-    let program = super::program::program()?;
-    let bundle = program
-        .ancestors()
-        .find(|one| one.extension().is_some_and(|ext| ext == "app"));
-    match bundle {
-        Some(bundle) => quiet(Command::new("open").args(["-g", "-j"]).arg(bundle))
-            .status()
-            .map(drop)
-            .map_err(|error| format!("Orden could not be started: {error}")),
-        None => detached(&program),
-    }
-}
-
-/// The app, started, in a process group of its own. Linux has no minimised start a
-/// program can ask for without the window system's own calls, so the window opens as it
-/// always does.
-#[cfg(all(unix, not(target_os = "macos")))]
-fn launch() -> Result<(), String> {
-    detached(&super::program::program()?)
-}
-
-/// A program started with nothing of this process's stdio and outside its process group,
-/// so the client's Ctrl+C is not the app's; waited for on a thread of its own so it
-/// leaves nothing behind when it ends first.
-#[cfg(unix)]
-fn detached(program: &Path) -> Result<(), String> {
-    use std::os::unix::process::CommandExt as _;
-
-    let mut child = quiet(Command::new(program).process_group(0))
-        .spawn()
-        .map_err(|error| format!("Orden could not be started: {error}"))?;
-    std::thread::spawn(move || child.wait());
-    Ok(())
-}
-
-/// No stdio of this process's: its stdout is the protocol.
-fn quiet(command: &mut Command) -> &mut Command {
-    command
-        .stdin(Stdio::null())
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
 }
 
 #[cfg(test)]

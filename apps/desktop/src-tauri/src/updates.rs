@@ -170,6 +170,13 @@ pub async fn check_update<R: Runtime>(
     webview: Webview<R>,
     channel: String,
 ) -> Result<Option<Found>, String> {
+    // A binary no bundler made, a build in target/, is not an install: on Linux the
+    // updater writes its AppImage over whatever runs, and the build would become the
+    // release, an MCP client's `nib mcp` included.
+    if tauri::utils::platform::bundle_type().is_none() {
+        return Ok(None);
+    }
+
     let mut builder = webview.updater_builder();
 
     if let Some(endpoints) = endpoints(&channel) {

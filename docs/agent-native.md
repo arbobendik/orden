@@ -1099,7 +1099,8 @@ keep their terminal as they were. See `src-tauri/src/ai_cli/enroll.rs`.
 arguments before anything of Tauri starts, and `mcp` is a loop over stdin and stdout that
 forwards each call to the running app's endpoint (the port and pid from `automation.json`,
 as `orden screenshot` finds them). It starts in a few milliseconds and opens no webview. If
-nib is not running it starts it minimised and waits for the endpoint. So the installed app
+nib is not running it does not start it: the link waits for `automation.json` to be written
+by the reader opening nib. So the installed app
 is the whole of it: `claude mcp add orden -- "%LOCALAPPDATA%\Orden\nib.exe" mcp` (an
 install from before a rename keeps `%LOCALAPPDATA%\Nib` or `%LOCALAPPDATA%\nibeditor`,
 so a line pasted then still works), which Settings > Agents offers to copy. Not the Node CLI, which ships in no installer

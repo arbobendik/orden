@@ -17,9 +17,9 @@
 //! | --- | --- |
 //! | `rpc` | JSON-RPC on stdin and stdout: a line read, the one writer |
 //! | `server` | the protocol: initialize, the tools, ping, cancellation |
-//! | `link` | the connection to the app: found or started, paired, watched |
+//! | `link` | the connection to the app: found, paired, watched |
 //! | `home` | where the app keeps its files, found without Tauri |
-//! | `app` | the running app: its endpoint file, a request to it, starting it |
+//! | `app` | the running app: its endpoint file, a request to it |
 //! | `pairing` | the client's name and token, asked for once and kept |
 //! | `tools` | the tool table, and the part of it an agent's grant reaches |
 //! | `results` | an answer as the model reads it |

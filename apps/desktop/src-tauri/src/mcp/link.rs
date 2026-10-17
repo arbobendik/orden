@@ -1,5 +1,5 @@
-//! The connection to the running app, from finding it to the last call: the app found or
-//! started, the client paired, its grant read, and all of it watched while the session
+//! The connection to the running app, from finding it to the last call: the app found
+//! (now or once the reader opens it), the client paired, its grant read, and all of it watched while the session
 //! lasts.
 //!
 //! **Nothing here holds up the client.** `initialize` is answered at once and all of this
@@ -63,7 +63,7 @@ const WINDOW_WAIT: Duration = Duration::from_secs(5);
 /// Where the link stands.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Standing {
-    /// Finding the app, starting it, or reading the kept token.
+    /// Finding the app, or reading the kept token.
     Connecting,
     /// The reader has been asked about this client and has not answered.
     Asked,
@@ -193,7 +193,7 @@ impl Link {
             ));
             return;
         };
-        match app::running(&dir).map_or_else(|| app::start(&dir), Ok) {
+        match app::running(&dir).ok_or_else(|| "it is not running".to_owned()) {
             Ok(endpoint) => self.reach(&dir, endpoint),
             Err(why) => self.settle(Standing::Unreachable(why)),
         }

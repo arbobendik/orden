@@ -1,9 +1,8 @@
 //! The program an agent's client runs as `nib mcp`: this binary, where it is installed.
 //! The settings pane asks for it to write the line a reader pastes into their client
-//! (`src/lib/agents/mcp.ts`), the app writes it into the clients it finds itself
-//! (`ai_cli/enroll.rs`), and `nib mcp` starts the app with it when nib is closed. So it
-//! has to be a path that is still there tomorrow, and on Linux the running binary is
-//! not always one.
+//! (`src/lib/agents/mcp.ts`), and the app writes it into the clients it finds itself
+//! (`ai_cli/enroll.rs`). So it has to be a path that is still there tomorrow, and on Linux
+//! the running binary is not always one.
 //!
 //! **An `AppImage`** runs from a folder mounted for that run alone, gone once it ends:
 //! the program to name is the `AppImage` itself, which its runtime says in `APPIMAGE`.
