@@ -818,8 +818,12 @@ function holds(tail: string): boolean {
  *
  *  Raised 2026-10-20, to 3,260,000, for #495: a front matter key may be any text YAML
  *  allows, and its list items go with it (`withUnder` in @nib/markdown's
- *  front-matter.ts). Measured 3,259,763. */
-const BUDGET = 3_260_000
+ *  front-matter.ts). Measured 3,259,763.
+ *
+ *  Raised 2026-10-20, to 3,261,000, for #509: a selection that ends at column 0 leaves
+ *  that line alone, so `linesOf` moves into commands.ts, which the first paint
+ *  loads. Measured 3,260,316. */
+const BUDGET = 3_261_000
 const MOST_FILES = 382
 
 /** And how much of the first paint's weight is not code at all but a file quoted into a
