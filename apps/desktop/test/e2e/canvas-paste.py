@@ -31,6 +31,13 @@ say, wrong, shot = DRIVE.say, DRIVE.wrong, DRIVE.shot
 ORIGIN = harness.worker_origin()
 PATIENCE = 60
 
+#: The app's own `fetch('/')` that a reload stops, as WebKit says it and Playwright hands
+#: it over. Playwright makes every console error of WebKit's a page error, cut after the
+#: first colon, and WebKit words a request the navigation stopped as refused by access
+#: control. The fetch is reload-when.ts asking the site for its build, as the reload stops
+#: a chunk (`vite:preloadError`), and it catches its own failure: nothing a person sees.
+STOPPED = f"{ORIGIN.split(':', 1)[1][1:]}/ due to access control checks."
+
 
 def png(width: int, height: int, rgb: tuple[int, int, int]) -> bytes:
     """A picture of one colour, as a PNG's bytes."""
@@ -152,7 +159,10 @@ def drive(browser: Browser, token: str) -> None:
         if signed:
             context.add_init_script(f"localStorage.setItem('nib:session', {json.dumps(token)})")
         page = context.new_page()
-        page.on("pageerror", lambda error, label=label: wrong(f"[{label}] page error: {error}"))
+        page.on(
+            "pageerror",
+            lambda error, label=label: (say if str(error) == STOPPED else wrong)(f"[{label}] page error: {error}"),
+        )
         page.goto(ORIGIN, wait_until="domcontentloaded")
         path = board(page, label)
         pasted(page, label, path)
