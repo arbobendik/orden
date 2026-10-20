@@ -811,8 +811,11 @@ function holds(tail: string): boolean {
  *  unstable with #524 and #538 beside it.
  *
  *  Raised 2026-10-20, to 3,258,000, for #497: a tag's name holds its marks and emoji,
- *  so `TAG_NAME` in @nib/markdown's tags.ts grows. Measured 3,257,026. */
-const BUDGET = 3_258_000
+ *  so `TAG_NAME` in @nib/markdown's tags.ts grows. Measured 3,257,026.
+ *
+ *  Raised 2026-10-20, to 3,259,000, for #534: a canvas file that is not JSON is refused
+ *  when it opens (`canvasIn` in @nib/markdown's canvas.ts). Measured 3,258,172. */
+const BUDGET = 3_259_000
 const MOST_FILES = 382
 
 /** And how much of the first paint's weight is not code at all but a file quoted into a
