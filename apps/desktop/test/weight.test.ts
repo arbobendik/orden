@@ -814,8 +814,12 @@ function holds(tail: string): boolean {
  *  so `TAG_NAME` in @nib/markdown's tags.ts grows. Measured 3,257,026.
  *
  *  Raised 2026-10-20, to 3,259,000, for #534: a canvas file that is not JSON is refused
- *  when it opens (`canvasIn` in @nib/markdown's canvas.ts). Measured 3,258,172. */
-const BUDGET = 3_259_000
+ *  when it opens (`canvasIn` in @nib/markdown's canvas.ts). Measured 3,258,172.
+ *
+ *  Raised 2026-10-20, to 3,260,000, for #495: a front matter key may be any text YAML
+ *  allows, and its list items go with it (`withUnder` in @nib/markdown's
+ *  front-matter.ts). Measured 3,259,763. */
+const BUDGET = 3_260_000
 const MOST_FILES = 382
 
 /** And how much of the first paint's weight is not code at all but a file quoted into a
