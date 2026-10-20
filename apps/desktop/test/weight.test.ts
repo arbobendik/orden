@@ -825,8 +825,11 @@ function holds(tail: string): boolean {
  *  loads. Measured 3,260,316.
  *
  *  Raised 2026-10-20, to 3,262,000, for #508: a paste into code goes in as copied, so
- *  paste.ts asks `rangeInCode` first. Measured 3,261,041. */
-const BUDGET = 3_262_000
+ *  paste.ts asks `rangeInCode` first. Measured 3,261,041.
+ *
+ *  Raised 2026-10-20, to 3,264,000, for #510: tidying a note leaves its code, maths and
+ *  HTML as written, so reformat.ts reads the note's syntax tree. Measured 3,263,201. */
+const BUDGET = 3_264_000
 const MOST_FILES = 382
 
 /** And how much of the first paint's weight is not code at all but a file quoted into a
