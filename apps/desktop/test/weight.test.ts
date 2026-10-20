@@ -822,8 +822,11 @@ function holds(tail: string): boolean {
  *
  *  Raised 2026-10-20, to 3,261,000, for #509: a selection that ends at column 0 leaves
  *  that line alone, so `linesOf` moves into commands.ts, which the first paint
- *  loads. Measured 3,260,316. */
-const BUDGET = 3_261_000
+ *  loads. Measured 3,260,316.
+ *
+ *  Raised 2026-10-20, to 3,262,000, for #508: a paste into code goes in as copied, so
+ *  paste.ts asks `rangeInCode` first. Measured 3,261,041. */
+const BUDGET = 3_262_000
 const MOST_FILES = 382
 
 /** And how much of the first paint's weight is not code at all but a file quoted into a
